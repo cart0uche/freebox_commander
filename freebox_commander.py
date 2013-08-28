@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# freebox command line
+# freebox commander
 
 import string
 from cmd import Cmd
@@ -51,13 +51,25 @@ class FreeboxCommander(Cmd):
 			return
 
 
-	def do_fls(self, args):
+	def do_ls(self, args):
 		"""List files on the freebox."""
 		if self.is_connected() is False:
 			return
-		self._current_file_list = self._fb.get_file_list('/Disque dur/Vidéos/')
+		self._current_file_list = self._fb.get_file_list(self._remote_path)
 		for file in self._current_file_list['result']:
 			print file['name'] + ' ' + str(file['size']/BYTE_PER_MO) + 'Mo'
+
+
+	def do_cd(self, args):
+		"""Change remote directory."""
+		if len(args) == 0:
+			self._remote_path = "/Disque dur/"
+		else:
+			new_location = self._remote_path + args + "/"
+			if self._fb.get_file_list(new_location)['success'] is True:
+				self._remote_path = new_location
+			else:
+				print new_location + " does not exist"
 
 
 	def do_get(self, args):
