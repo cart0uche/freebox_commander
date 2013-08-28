@@ -15,6 +15,7 @@ class FreeboxCommander(Cmd):
 
 	def __init__(self):
 		self._remote_path = "/Disque dur/"
+		self._current_file_list = []
 		Cmd.__init__(self)
 
 
@@ -55,10 +56,10 @@ class FreeboxCommander(Cmd):
 		"""List files on the freebox."""
 		if self.is_connected() is False:
 			return
-			
-		self._current_file_list = self._fb.get_file_list(self._remote_path)
-		for file in self._current_file_list['result']:
+
+		for file in  self._fb.get_file_list(self._remote_path)['result']:
 			print file['name'] + ' ' + str(file['size']/BYTE_PER_MO) + 'Mo'
+			self._current_file_list.append(file['name'])
 
 
 	def do_cd(self, args):
@@ -71,9 +72,14 @@ class FreeboxCommander(Cmd):
 		else:
 			new_location = self._remote_path + args + "/"
 			if self._fb.get_file_list(new_location)['success'] is True:
+				self._current_file_list = []
 				self._remote_path = new_location
 			else:
 				print new_location + " does not exist"
+
+
+	def complete_cd(self, text, line, begidx, endidx):
+		return  [i for i in self._current_file_list if i.startswith(text)]
 
 
 	def do_get(self, args):
@@ -84,6 +90,10 @@ class FreeboxCommander(Cmd):
 		for file in self._current_file_list['result']:
 			if file['name'] == args:
 				self._fb.download_file(file['path'], file['name'])
+
+
+	def complete_get(self, text, line, begidx, endidx):
+		return  [i for i in self._current_file_list if i.startswith(text)]
 
 
 	def do_quit(self, args):
