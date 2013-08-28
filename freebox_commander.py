@@ -55,6 +55,7 @@ class FreeboxCommander(Cmd):
 		"""List files on the freebox."""
 		if self.is_connected() is False:
 			return
+			
 		self._current_file_list = self._fb.get_file_list(self._remote_path)
 		for file in self._current_file_list['result']:
 			print file['name'] + ' ' + str(file['size']/BYTE_PER_MO) + 'Mo'
@@ -62,6 +63,9 @@ class FreeboxCommander(Cmd):
 
 	def do_cd(self, args):
 		"""Change remote directory."""
+		if self.is_connected() is False:
+			return
+
 		if len(args) == 0:
 			self._remote_path = "/Disque dur/"
 		else:
