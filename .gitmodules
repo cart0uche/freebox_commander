@@ -1,0 +1,3 @@
+[submodule "pyfree"]
+	path = pyfree
+	url = git://github.com/cart0uche/pyfree.git
