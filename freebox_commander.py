@@ -14,8 +14,9 @@ BYTE_PER_MO = 1048576
 class FreeboxCommander(Cmd):
 
 	def __init__(self):
-		self._remote_path = "/Disque dur/"
+		self._remote_path = ["Disque dur"]
 		self._current_file_list = []
+		self._current_directories = []
 		Cmd.__init__(self)
 
 
@@ -51,35 +52,46 @@ class FreeboxCommander(Cmd):
 			print 'Login failed'
 			return
 
+		self.build_current_directories()
+		self.update_prompt()
+
 
 	def do_ls(self, args):
 		"""List files on the freebox."""
 		if self.is_connected() is False:
 			return
 
-		for file in  self._fb.get_file_list(self._remote_path)['result']:
+		for file in  self._fb.get_file_list(self.get_path_name)['result']:
 			print file['name'] + ' ' + str(file['size']/BYTE_PER_MO) + 'Mo'
 			self._current_file_list.append(file['name'])
 
 
 	def do_cd(self, args):
-		"""Change remote directory."""
+		""" Change remote directory. """
 		if self.is_connected() is False:
 			return
 
 		if len(args) == 0:
-			self._remote_path = "/Disque dur/"
+			self._remote_path = ["Disque dur"]
+		elif args == ".":
+			return
+		elif args == "..":
+			if len(self._remote_path) != 0:
+				self._remote_path.pop()
+				self.build_current_directories()
+				self.update_prompt()
 		else:
-			new_location = self._remote_path + args + "/"
-			if self._fb.get_file_list(new_location)['success'] is True:
-				self._current_file_list = []
-				self._remote_path = new_location
+			self._remote_path.append(args)
+			if self._fb.get_file_list(self.get_path_name)['success'] is True:
+				self.build_current_directories()
+				self.update_prompt()
 			else:
-				print new_location + " does not exist"
+				self._remote_path.pop()
+				print args + " does not exist."
 
 
 	def complete_cd(self, text, line, begidx, endidx):
-		return  [i for i in self._current_file_list if i.startswith(text)]
+		return  [i for i in self._current_directories if i.lower().startswith(text.lower())]
 
 
 	def do_get(self, args):
@@ -93,7 +105,7 @@ class FreeboxCommander(Cmd):
 
 
 	def complete_get(self, text, line, begidx, endidx):
-		return  [i for i in self._current_file_list if i.startswith(text)]
+		return  [i for i in self._current_file_list if i.lower().startswith(text.lower())]
 
 
 	def do_quit(self, args):
@@ -108,6 +120,25 @@ class FreeboxCommander(Cmd):
 		else:
 			print "You must to connect to a freebox before all operation, with command connect."
 			return False
+
+
+	def build_current_directories(self):
+		del self._current_directories[:]
+		for file in  self._fb.get_file_list(self.get_path_name)['result']:
+			if file["type"] == "dir":
+				self._current_directories.append(file['name'])
+
+
+	def update_prompt(self):
+		fcl.prompt = 'freebox # ' + self.get_path_name + " ~ "
+
+
+	@property
+	def get_path_name(self):
+		path = ""
+		for repo in self._remote_path:
+			path = path + "/" + repo
+		return path
 
 
 if __name__ == '__main__':
