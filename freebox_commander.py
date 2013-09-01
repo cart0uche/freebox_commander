@@ -61,8 +61,11 @@ class FreeboxCommander(Cmd):
 		if self.is_connected() is False:
 			return
 
-		for file in  self._fb.get_file_list(self.get_path_name)['result']:
-			print file['name'] + ' ' + str(file['size']/BYTE_PER_MO) + 'Mo'
+		for file in  self._fb.get_file_list(self.current_path_name)['result']:
+			if args == "-l":
+				print "%s  %5dMo %s"  %  ("d" if file["type"]=="dir" else "-", file["size"]/BYTE_PER_MO, file["name"])
+			else:
+				print file['name']
 			self._current_file_list.append(file['name'])
 
 
@@ -82,7 +85,7 @@ class FreeboxCommander(Cmd):
 				self.update_prompt()
 		else:
 			self._remote_path.append(args)
-			if self._fb.get_file_list(self.get_path_name)['success'] is True:
+			if self._fb.get_file_list(self.current_path_name)['success'] is True:
 				self.build_current_directories()
 				self.update_prompt()
 			else:
@@ -124,17 +127,17 @@ class FreeboxCommander(Cmd):
 
 	def build_current_directories(self):
 		del self._current_directories[:]
-		for file in  self._fb.get_file_list(self.get_path_name)['result']:
+		for file in  self._fb.get_file_list(self.current_path_name)['result']:
 			if file["type"] == "dir":
 				self._current_directories.append(file['name'])
 
 
 	def update_prompt(self):
-		fcl.prompt = 'freebox # ' + self.get_path_name + " ~ "
+		fcl.prompt = 'freebox # ' + self.current_path_name + " ~ "
 
 
 	@property
-	def get_path_name(self):
+	def current_path_name(self):
 		path = ""
 		for repo in self._remote_path:
 			path = path + "/" + repo
