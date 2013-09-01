@@ -129,7 +129,7 @@ class FreeboxCommander(Cmd):
 	def build_current_directories(self):
 		del self._current_directories[:]
 		for file in  self._fb.get_file_list(self.current_path_name)['result']:
-			if file["type"] == "dir":
+			if file["type"] == "dir" and file["name"] not in [".", ".."]:
 				self._current_directories.append(file['name'])
 
 
