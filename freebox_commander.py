@@ -62,11 +62,12 @@ class FreeboxCommander(Cmd):
 			return
 
 		for file in  self._fb.get_file_list(self.current_path_name)['result']:
-			if args == "-l":
-				print "%s  %5dMo %s"  %  ("d" if file["type"]=="dir" else "-", file["size"]/BYTE_PER_MO, file["name"])
-			else:
-				print file['name']
-			self._current_file_list.append(file['name'])
+			if file["name"] not in [".", ".."]:
+				if args == "-l":
+					print "%s  %5dMo %s"  %  ("d" if file["type"]=="dir" else "-", file["size"]/BYTE_PER_MO, file["name"])
+				else:
+					print file['name']
+				self._current_file_list.append(file['name'])
 
 
 	def do_cd(self, args):
