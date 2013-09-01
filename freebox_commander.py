@@ -130,7 +130,7 @@ class FreeboxCommander(Cmd):
 		del self._current_directories[:]
 		for file in  self._fb.get_file_list(self.current_path_name)['result']:
 			if file["type"] == "dir" and file["name"] not in [".", ".."]:
-				self._current_directories.append(file['name'])
+				self._current_directories.append(file['name'].encode('utf-8'))
 
 
 	def update_prompt(self):
